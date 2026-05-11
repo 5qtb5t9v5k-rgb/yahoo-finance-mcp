@@ -7,8 +7,17 @@
 VENV ?= .venv
 PY := $(VENV)/bin/python
 
+# `--python-preference only-managed` forces uv to use its own arm64-native
+# Python download (cpython-3.11.x-macos-aarch64-none) rather than the
+# macOS framework Python at /Library/Frameworks/. The framework build
+# is universal2 (x86_64 + arm64 fat binary), and when the launching
+# shell is running under Rosetta x86_64, the framework Python inherits
+# x86_64 — then arm64 wheels installed by pip fail to load with
+# "incompatible architecture (have 'arm64', need 'x86_64')". A single-
+# arch managed Python sidesteps that entire class of failure.
 $(VENV)/.touch:
-	uv venv --python 3.11 $(VENV)
+	uv python install 3.11
+	uv venv --python 3.11 --python-preference only-managed $(VENV)
 	@touch $(VENV)/.touch
 
 venv: $(VENV)/.touch

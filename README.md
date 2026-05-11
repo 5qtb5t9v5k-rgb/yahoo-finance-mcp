@@ -89,9 +89,18 @@ agent at it.
 
 **Apple Silicon note:** if you see
 `ImportError: ... incompatible architecture (have 'arm64', need 'x86_64')`,
-your system Python has an x86_64 numpy install (common after a Rosetta
-era). The `uv venv` step above creates an isolated arm64-clean venv
-and sidesteps the issue entirely.
+the macOS framework Python at `/Library/Frameworks/Python.framework/`
+is a *universal2 binary* (fat x86_64 + arm64). When it's launched from
+a shell that's running under Rosetta, it inherits x86_64 — but pip
+still installs arm64 wheels, and they can't load. The Makefile passes
+`--python-preference only-managed` to `uv venv` so the venv uses uv's
+own single-architecture arm64 Python (`cpython-3.11.x-macos-aarch64`)
+instead of the framework build. That avoids the whole mess.
+
+If you set up manually with `uv venv --python 3.11 .venv`, the venv
+will silently inherit the framework Python's arch. Add
+`--python-preference only-managed` and run `uv python install 3.11`
+first to get the arm64-only build.
 
 ## Testing
 
