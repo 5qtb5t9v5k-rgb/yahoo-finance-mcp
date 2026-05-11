@@ -74,12 +74,24 @@ Three reasons baked into the existing project's `LESSONS.md`:
 ## Running locally
 
 ```bash
-# Setup
-uv pip install -r requirements.txt
+# One-shot setup + run (uses uv)
+make serve
 
-# Run on localhost:8000
-uv run python -m yahoo_mcp.server
+# …or manually:
+uv venv --python 3.11
+uv pip install -r requirements.txt
+.venv/bin/python -m yahoo_mcp.server
 ```
+
+Server listens on `http://localhost:8000/mcp`. Set
+`YAHOO_MCP_URL=http://localhost:8000/mcp` in your client to point an
+agent at it.
+
+**Apple Silicon note:** if you see
+`ImportError: ... incompatible architecture (have 'arm64', need 'x86_64')`,
+your system Python has an x86_64 numpy install (common after a Rosetta
+era). The `uv venv` step above creates an isolated arm64-clean venv
+and sidesteps the issue entirely.
 
 ## Testing
 
