@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Run on a schedule too — yfinance silently breaks when Yahoo changes
+  # an upstream endpoint, and we want to know about it.
+  schedule:
+    - cron: "0 5 * * *"  # 05:00 UTC daily (Helsinki 07/08 outside work hours)
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff==0.14.0
+      - run: ruff check yahoo_mcp tests
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt pytest
+      - run: python -m pytest tests/ -v
+
+  live-probe:
+    # Only the scheduled run hits Yahoo for real. Skipped on PR / push so
+    # CI doesn't fail every time Yahoo rate-limits us.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt pytest
+      - run: YAHOO_MCP_LIVE=1 python -m pytest tests/ -v -m live
+        continue-on-error: true  # Yahoo flakiness shouldn't block the green build

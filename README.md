@@ -15,7 +15,8 @@ where it complements the Finnish-coverage Inderes MCP with live price
 
 ## Status
 
-🚧 Early — working snapshot tool, others in progress. License MIT.
+✅ **5 tools shipped** (snapshot, history, news, holders, search) + health probe.
+Modal deploy config is the next milestone. License MIT.
 
 ## Architecture
 
@@ -43,15 +44,16 @@ where it complements the Finnish-coverage Inderes MCP with live price
               Yahoo Finance
 ```
 
-## Tools (planned)
+## Tools
 
-| Tool | Status | Description |
-|---|---|---|
-| `get-snapshot` | ✅ shipped | Live price + market cap + P/E + P/B + bookValue + analyst consensus |
-| `get-history` | 🚧 | Split-adjusted OHLC price history |
-| `search-ticker` | 🚧 | Resolve company name → ticker (with Helsinki `.HE` heuristics) |
-| `get-news` | 💭 | Recent news items for ticker |
-| `get-holders` | 💭 | Institutional + insider holdings |
+| Tool | Description |
+|---|---|
+| `search_ticker(query)` | Resolve company name → ticker (with Helsinki `.HE` heuristic) |
+| `get_snapshot(ticker)` | Live price + market cap + P/E + P/B + bookValue + analyst consensus + freshness flag |
+| `get_history(ticker, period, interval)` | Split- and dividend-adjusted OHLCV bars |
+| `get_news(ticker, limit)` | Recent news items (supports the old flat + new nested yfinance shapes) |
+| `get_holders(ticker)` | Major holders %, top institutions, top mutual funds, recent insider transactions |
+| `health()` | Server version + yfinance version + live AAPL probe — cron-ready |
 
 ## Why not just use yfinance directly?
 
@@ -78,6 +80,20 @@ uv pip install -r requirements.txt
 # Run on localhost:8000
 uv run python -m yahoo_mcp.server
 ```
+
+## Testing
+
+```bash
+# Offline suite (yfinance fully mocked, no network)
+python -m pytest tests/ -v
+
+# Optional live probe — hits Yahoo for real
+YAHOO_MCP_LIVE=1 python -m pytest tests/ -v -m live
+```
+
+The CI workflow runs the offline suite on every PR and the live probe
+once a day on a schedule — that gives us a canary for "Yahoo broke
+yfinance" without making PRs depend on Yahoo's availability.
 
 ## Hosting
 
