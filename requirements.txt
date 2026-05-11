@@ -1,0 +1,8 @@
+# Pinned for reproducibility. yfinance is famously brittle — bump
+# explicitly after testing locally.
+yfinance==1.3.0
+curl_cffi==0.15.1b1   # TLS-fingerprint shim — required since Yahoo started blocking unmasked requests
+mcp==1.27.1           # python-sdk
+uvicorn[standard]==0.46.0
+fastapi==0.136.1
+diskcache==5.6.3      # stale-fallback when yfinance fetch fails
